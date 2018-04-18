@@ -2,12 +2,13 @@ module DeviseSecurityExtension::Patches
   module RegistrationsControllerCaptcha
     extend ActiveSupport::Concern
     included do
-      define_method :create do |&block|
+      define_method :create do
         build_resource(sign_up_params)
 
-        if ((defined? verify_recaptcha) && (verify_recaptcha)) or ((defined? valid_captcha?) && (valid_captcha? params[:captcha]))
+        if valid_captcha? params[:captcha]
+
           if resource.save
-            block.call(resource) if block
+            yield resource if block_given?
             if resource.active_for_authentication?
               set_flash_message :notice, :signed_up if is_flashing_format?
               sign_up(resource_name, resource)
